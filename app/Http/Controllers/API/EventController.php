@@ -1,0 +1,136 @@
+<?php
+
+namespace App\Http\Controllers\API;
+
+
+use App\Model\Users;
+use App\Model\Events;
+use App\Model\Pics;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Http\Controllers\UsersController;
+
+class EventController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+
+      //  include app_path().'\\Http\\Controllers\\UserController.php';
+        $user = new UsersController();
+
+        $token = $_GET['token'];
+        $token = str_replace(' ','+',$token);
+        $getUser = $user->getProfile($token);
+        $userId = $getUser->userId;
+        $type = Users::where('line_id',$userId)->first();
+        if ($type->type == 'admin') {
+            return [
+               'event' => Events::get()
+            ];
+        }
+        if ($type->type == 'org') {
+            // $event['event'] = Events::where('user_id',$type->id)->get();
+            // $output['event'] = $event;
+            return [
+                'event' =>  Events::where('user_id',$type->id)->get()
+            ];
+        }
+        return [
+            'event' =>  Events::where('status','true')->get()
+        ];
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        $user = new UsersController();
+        $event = new Events();
+
+        $data = $request->all();
+        $token = $data['access_token'];
+        $getUser = $user->getProfile($token);
+        $userId = $getUser->userId;
+        $type = Users::where('line_id',$userId)->first();
+
+        if ($type->type == 'org') {
+            unset($data['token']);
+            $event->fill($data['form']);
+            $event->save();
+
+            $output = array(
+                'status' => 200,
+                'msg' => "Create Event Complete" ,
+            );
+
+            header('Access-Control-Allow-Origin: *');
+            return $output;
+        }
+
+        $output = array(
+            'status' => 401,
+            'msg' => "No Permission" ,
+        );
+//        header('Access-Control-Allow-Origin: *');
+
+        return $output;
+
+
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        return Events::find($id);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        $user = new UserController();
+        $event = new Events();
+
+        $data = $request->all();
+        $token = $data['token'];
+        $getUser = $user->getProfile($token);
+        $userId = $getUser->userId;
+        $type = Users::where('line_id',$userId)->first();
+
+
+        // $event = Events::find($id);
+        // $event->fill($request->all());
+        // $event->save();
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        $event = Events::find($id);
+        $event->delete();
+    }
+}

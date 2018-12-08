@@ -1,0 +1,19 @@
+<?php
+
+namespace App\Model;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Invoices extends Model
+{
+    protected $table = 'Invoices';
+    protected $fillable = [
+        "id",
+        "user_id",
+        "division_id",
+        "status",
+        "pic",
+        "created_at",
+        "updated_at"
+    ];
+}
