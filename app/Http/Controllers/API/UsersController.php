@@ -18,7 +18,7 @@ class UsersController extends Controller
     public function index()
     {
         $url = array(
-            'url' => 'https://access.line.me/dialog/oauth/weblogin?response_type=code&client_id=1602409871&redirect_uri=http://192.168.1.15:8080/callback&state=peerapat123456789',
+            'url' => 'https://access.line.me/dialog/oauth/weblogin?response_type=code&client_id=1602409871&redirect_uri=http://192.168.1.107:8080/callback&state=peerapat123456789',
         );
 // header('Access-Control-Allow-Origin: *');
         die(json_encode($url));
@@ -30,7 +30,7 @@ class UsersController extends Controller
         $parameter = array(
             'grant_type' => 'authorization_code',
             'code' => trim($_GET['code']),
-            'redirect_uri' => 'http://192.168.1.15:8080/callback',
+            'redirect_uri' => 'http://192.168.1.107:8080/callback',
             'client_id' => '1602409871',
             'client_secret' => '37a7d9312db424eda44f68689373dd9e'
         );

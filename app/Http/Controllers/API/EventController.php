@@ -6,6 +6,7 @@ namespace App\Http\Controllers\API;
 use App\Model\Users;
 use App\Model\Events;
 use App\Model\Pics;
+use App\Model\Provinces;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UsersController;
@@ -43,6 +44,17 @@ class EventController extends Controller
         return [
             'event' =>  Events::where('status','true')->get()
         ];
+    }
+
+    public function select(){
+        // header('Access-Control-Allow-Origin: *');
+        $province = urldecode($_GET['province']);
+        die(json_encode([
+            'event' => Events::where('provinces',$province)->get()
+        ]));
+        // return [
+        //     'event' => Events::where('provinces',$province)->get()
+        // ];
     }
 
     /**

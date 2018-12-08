@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
     Route::resource('/event', \API\EventController::class);
     Route::resource('/invoice', \API\InvoiceController::class);
     Route::resource('/pic', \API\PicController::class);
+    Route::get('/select', \API\EventController::class.'@select');
     Route::get('/address', \API\AddressController::class.'@index');
 
     // Route::get('/division', \API\DivisionController::class.'@methods');
