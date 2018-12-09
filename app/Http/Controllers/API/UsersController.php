@@ -153,7 +153,7 @@ class UsersController extends Controller
 // header('Access-Control-Allow-Origin: *');
         die(json_encode(['status'=>true]));
     }
-    private function getProfileID($access_token){
+    public function getProfileID($access_token){
         if($access_token){
             $response = $this->curl('https://api.line.me/v2/profile',array(),'GET',array('Authorization: Bearer '.$access_token));
             return $response;

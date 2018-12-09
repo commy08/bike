@@ -67,16 +67,25 @@ class EventController extends Controller
     {
         $user = new UsersController();
         $event = new Events();
+        $pic = new Pics();
 
         $data = $request->all();
+        // die(json_encode($data));
+        $data = json_decode(file_get_contents('php://input'),true);
         $token = $data['access_token'];
+        
         $getUser = $user->getProfile($token);
         $userId = $getUser->userId;
+        
         $type = Users::where('line_id',$userId)->first();
+        $data['form']['user_id'] = $type->id;
+        $form = $data['form'];
 
+        // die(json_encode($form));
         if ($type->type == 'org') {
-            unset($data['token']);
-            $event->fill($data['form']);
+            $event = new Events();
+            // unset($data['access_token']);
+            $event->fill($form);
             $event->save();
 
             $output = array(
@@ -84,17 +93,16 @@ class EventController extends Controller
                 'msg' => "Create Event Complete" ,
             );
 
-            header('Access-Control-Allow-Origin: *');
-            return $output;
+            // header('Access-Control-Allow-Origin: *');
+            die(json_encode($output));
         }
 
         $output = array(
             'status' => 401,
             'msg' => "No Permission" ,
         );
-//        header('Access-Control-Allow-Origin: *');
 
-        return $output;
+        die($output);
 
 
     }
