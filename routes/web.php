@@ -15,9 +15,14 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/callback', 'UsersController@callback');
-Route::get('/login', 'UsersController@index');
+// Route::get('/callback', 'UsersController@callback');
+// Route::get('/login', 'UsersController@index');
 
-Route::post('/getUser', 'UsersController@showUser');
-Route::post('/registerOrg','UsersController@registerOrg');
-Route::post('/registerUser','UsersController@registerUser');
+// Route::post('/getUser', 'UsersController@showUser');
+// Route::post('/registerOrg','UsersController@registerOrg');
+// Route::post('/registerUser','UsersController@registerUser');
+
+
+
+
+Route::get('/form', 'FormController@index');

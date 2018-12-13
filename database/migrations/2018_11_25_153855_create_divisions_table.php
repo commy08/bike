@@ -16,7 +16,7 @@ class CreateDivisionsTable extends Migration
         Schema::create('divisions', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('events_id')->nullable();
-            $table->text('name')->nullable();
+            $table->text('DivisionName')->nullable();
             $table->integer('ageMin')->nullable();
             $table->integer('ageMax')->nullable();
             $table->string('sex',50)->nullable();

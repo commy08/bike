@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
+use App\Model\Banks;
 use Illuminate\Http\Request;
-use DB;
+use App\Http\Controllers\Controller;
 
-class FormController extends Controller
+class BankController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -14,18 +15,8 @@ class FormController extends Controller
      */
     public function index()
     {
-        $table = $_GET['table'];
-        return DB::getSchemaBuilder()->getColumnListing($table);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        $bank = Banks::get();
+        return $bank;
     }
 
     /**
@@ -45,18 +36,7 @@ class FormController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($table)
-    {
-        return DB::getSchemaBuilder()->getColumnListing($table);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
+    public function show($id)
     {
         //
     }

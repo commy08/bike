@@ -5,7 +5,9 @@ CREATE TABLE `amphurs` (
   `amphur_name_eng` varchar(150) NOT NULL,
   `province_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `ux_districts_code` (`amphur_code`) USING BTREE,
+  UNIQUE KEY `ux_amphurs_code` (`amphur_code`) USING BTREE,
+  KEY `ix_amphurs_province_id` (`province_id`) USING BTREE,
+  CONSTRAINT `fk_amphurs_provinces` FOREIGN KEY (`province_id`) REFERENCES `provinces` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=929 DEFAULT CHARSET=utf8;
 
 -- ----------------------------

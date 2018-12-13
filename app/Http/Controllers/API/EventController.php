@@ -7,6 +7,7 @@ use App\Model\Users;
 use App\Model\Events;
 use App\Model\Pics;
 use App\Model\Provinces;
+use App\Model\Divisions;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UsersController;
@@ -47,14 +48,8 @@ class EventController extends Controller
     }
 
     public function select(){
-        // header('Access-Control-Allow-Origin: *');
         $province = urldecode($_GET['province']);
-        die(json_encode([
-            'event' => Events::where('provinces',$province)->get()
-        ]));
-        // return [
-        //     'event' => Events::where('provinces',$province)->get()
-        // ];
+         return Events::where('provinces',$province)->get();
     }
 
     /**
@@ -64,37 +59,51 @@ class EventController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
+    { 
         $user = new UsersController();
         $event = new Events();
         $pic = new Pics();
+        $divisions = new Divisions();
 
         $data = $request->all();
-        // die(json_encode($data));
-        $data = json_decode(file_get_contents('php://input'),true);
-        $token = $data['access_token'];
+        // return  $data;
         
+        $token = $data['access_token'];
         $getUser = $user->getProfile($token);
         $userId = $getUser->userId;
         
         $type = Users::where('line_id',$userId)->first();
         $data['form']['user_id'] = $type->id;
-        $form = $data['form'];
-
+        $EventForm = $data['form'];
+        $DivisionsForm = $data['division'];
+        
+        // dd($form);
         // die(json_encode($form));
         if ($type->type == 'org') {
-            $event = new Events();
-            // unset($data['access_token']);
-            $event->fill($form);
+            $event->fill($EventForm);
             $event->save();
+            $event_id = $event->id;
+
+            //count form before save***
+            $data['img']['event_id'] = $event_id;
+            $PicForm = $data['img'];
+
+            $pic->fill($PicForm);
+            $pic->save();
+
+            //count form before save***
+            $data['division']['event_id'] = $event_id;
+            $DivisionsForm = $data['division'];
+
+            $divisions->fill($DivisionsForm);
+            $divisions->save();
 
             $output = array(
                 'status' => 200,
                 'msg' => "Create Event Complete" ,
             );
-
-            // header('Access-Control-Allow-Origin: *');
-            die(json_encode($output));
+ 
+            return $output;
         }
 
         $output = array(
@@ -102,8 +111,8 @@ class EventController extends Controller
             'msg' => "No Permission" ,
         );
 
-        die($output);
-
+        return $output;
+        
 
     }
 

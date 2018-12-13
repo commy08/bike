@@ -20,52 +20,22 @@ class AddressController extends Controller
         $province = Provinces::get();
         $amphur = Amphurs::get();
         $output = array_merge(['provinces' => $province],['amphurs' => $amphur]);
-        die(json_encode($output));
-        // return $output;
+        return $output;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    public function getCity()
     {
-        //
+        
+        $province = Provinces::get();
+        return $province;
+       
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+    public function getAmp($id)
+    { 
+        
+        $amp = Amphurs::where('province_id',$id)->get();
+        return $amp; 
+        
     }
 }

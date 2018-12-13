@@ -18,7 +18,6 @@ class CreateProvincesTable extends Migration
             $table->string('province_code',4)->nullable();
             $table->string('province_name',150)->nullable();
             $table->string('province_name_eng',150)->nullable();
-            $table->integer('geo_id')->nullable();
             $table->timestamps();
         });
     }

@@ -15,7 +15,8 @@ class CreateEventsTable extends Migration
     {
         Schema::create('events', function (Blueprint $table) {
             $table->increments('id');
-            $table->text('name')->nullable();
+            $table->integer('user_id')->nullable();
+            $table->text('EventName')->nullable();
             $table->text('detail')->nullable();
             $table->text('location')->nullable();
             $table->text('provinces')->nullable();
@@ -24,10 +25,10 @@ class CreateEventsTable extends Migration
             $table->date('dateDeadline')->nullable();
             $table->date('dateRace')->nullable();
             $table->string('type',50)->nullable();
-            $table->text('rule')->nullable();
-            $table->integer('user_id')->nullable();
+            $table->text('rule')->nullable();            
             $table->text('reward')->nullable();
-            $table->text('payment')->nullable();
+            $table->text('youtube')->nullable();
+            // $table->text('payment')->nullable();
             $table->string('status',10)->nullable();
             $table->timestamps();
         });

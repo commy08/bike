@@ -19,7 +19,7 @@ class CreateUsersTable extends Migration
             $table->text('line_pic')->nullable();
             $table->text('line_token')->nullable();
             $table->string('type',10)->nullable();
-            $table->string('firstname',100)->nullable();
+            $table->text('firstname')->nullable();
             $table->string('lastname',100)->nullable();
             $table->string('sex',10)->nullable();
             $table->text('address')->nullable();
