@@ -19,8 +19,7 @@ class EventController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
+    public function index(){
 
       //  include app_path().'\\Http\\Controllers\\UserController.php';
         $user = new UsersController();
@@ -47,7 +46,7 @@ class EventController extends Controller
         ];
     }
 
-    public function select(){
+    public function SelectByProvince(){
         $province = urldecode($_GET['province']);
          return Events::where('provinces',$province)->get();
     }
@@ -58,14 +57,14 @@ class EventController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    { 
+    public function store(Request $request){ 
         $user = new UsersController();
         $event = new Events();
         $pic = new Pics();
         $divisions = new Divisions();
 
         $data = $request->all();
+        // $data = json_decode(file_get_contents('php://input'),true);
         // return  $data;
         
         $token = $data['access_token'];
@@ -85,18 +84,39 @@ class EventController extends Controller
             $event_id = $event->id;
 
             //count form before save***
-            $data['img']['event_id'] = $event_id;
-            $PicForm = $data['img'];
+            // $data['form']['imgs'][0]['file']
+            $PicForm = [];
+            foreach ($data['form']['imgs'] as $value) {
+                $tmp = [
+                    'PicData' => $value['base64'],
+                    'event_id' => $event_id
+                ];
+                array_push($PicForm,$tmp);
+            }
+            // $data['form']['imgs']['event_id'] = $event_id;
+            // $PicForm = $data['img'];
 
-            $pic->fill($PicForm);
-            $pic->save();
+            $pic->insert($PicForm);
+            // $pic->save();
 
             //count form before save***
-            $data['division']['event_id'] = $event_id;
-            $DivisionsForm = $data['division'];
+            $divisionForm = [];
+            foreach ($data['form']['division'] as $value) {
+                $tmp = [
+                    'DivisionName' => $value['DivisionName'],
+                    'ageMin' => $value['ageMin'],
+                    'ageMax' => $value['ageMax'],
+                    'sex' => $value['sex'],
+                    'cost' => $value['cost'],
+                    'event_id' => $value['event_id']
+                ];
+                array_push($divisionForm,$tmp);
+            }
+            /*$data['division']['event_id'] = $event_id;
+            $DivisionsForm = $data['division'];*/
 
-            $divisions->fill($DivisionsForm);
-            $divisions->save();
+            $divisions->insert($DivisionsForm);
+            // $divisions->save();
 
             $output = array(
                 'status' => 200,
@@ -134,8 +154,7 @@ class EventController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
-    {
+    public function update(Request $request, $id){
         $user = new UserController();
         $event = new Events();
 
@@ -151,15 +170,31 @@ class EventController extends Controller
         // $event->save();
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        $event = Events::find($id);
-        $event->delete();
+    public function updateStatus(Request $request){
+        $user = new UsersController();
+
+        $data = json_decode(file_get_contents('php://input'),true);
+        // return $data;
+        $getUser = $user->getProfile($data['access_token']);
+        $updateID = $data['id'];
+        $userId = $getUser->userId;
+        $type = Users::where('line_id',$userId)->first();
+        if ($type->type == 'admin'){
+            Events::where('id',$updateID)->update(['status' => 'true']);
+
+            $output = array(
+                'status' => 200,
+                'msg' => 'Update Status User Complete',
+            );
+    
+            return $output;
+        }else {
+            $output = array(
+                'status' => 400,
+                'msg' => 'Update Status User Fail',
+            );
+    
+            return $output;
+        }
     }
 }

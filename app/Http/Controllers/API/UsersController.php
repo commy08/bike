@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use Illuminate\Http\Request;
 
 use App\Model\Users;
+use App\Model\Payments;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 
@@ -15,22 +16,19 @@ class UsersController extends Controller
      *as
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
+    public function index(){
         $url = array(
-            'url' => 'https://access.line.me/dialog/oauth/weblogin?response_type=code&client_id=1602409871&redirect_uri=http://192.168.1.104:8080/callback&state=peerapat123456789',
+            'url' => 'https://access.line.me/dialog/oauth/weblogin?response_type=code&client_id=1602409871&redirect_uri=http://192.168.1.105:8080/callback&state=peerapat123456789',
         );
 
         return $url;
     }
 
-    public function callback()
-    {
-
+    public function callback(){
         $parameter = array(
             'grant_type' => 'authorization_code',
             'code' => trim($_GET['code']),
-            'redirect_uri' => 'http://192.168.1.104:8080/callback', //ip frontend
+            'redirect_uri' => 'http://192.168.1.105:8080/callback', //ip frontend
             'client_id' => '1602409871',
             'client_secret' => '37a7d9312db424eda44f68689373dd9e'
         );
@@ -92,69 +90,6 @@ class UsersController extends Controller
         return $response;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        return User::find($id);
-    }
-
-    public function registerUser(Request $request){
-
-        // $user = $request->all();
-        // return $user;
-        $tmp = json_decode(file_get_contents('php://input'),true);
-        $getUser = $this->getProfile($tmp['access_token']);
-
-        $id =  $getUser->userId;
-
-        $form =  $tmp['form'];
-
-
-        $db = Users::where('line_id',$id)->update(
-            [
-                'firstname' => $form['firstname'],
-                'lastname' =>$form['lastname'],
-                'tel' =>$form['tel'],
-                'sex' => $form['sex'],
-                'address' => $form['address'],
-                'provinces' => $form['provinces'],
-                'amphurs' => $form['amphurs'],
-                'birthday' => $form['date'],
-                'picID' => $form['picID'],
-                'type' => 'user'
-            ]
-        );
-
-
-
-        die(json_encode(['status'=>true]));
-    }
     public function getProfileID($access_token){
         if($access_token){
             $response = $this->curl('https://api.line.me/v2/profile',array(),'GET',array('Authorization: Bearer '.$access_token));
@@ -162,48 +97,78 @@ class UsersController extends Controller
         }else{
             return null;
         }
-
     }
+
+    public function registerUser(Request $request){
+
+        $tmp = json_decode(file_get_contents('php://input'),true);
+        $getUser = $this->getProfile($tmp['access_token']);
+        $id = $getUser->userId;
+        $data = $tmp['form'];
+
+        $db = Users::where('line_id',$id)->update(
+            [
+                'firstname' => $data['firstname'],
+                'lastname' => $data['lastname'],
+                'tel' =>$data['tel'],
+                'sex' => $data['sex'],
+                'address' => $data['location'],
+                'provinces' => $data['address']['provinces'],
+                'amphurs' => $data['address']['amphurs'],
+                'birthday' => $data['date'],
+                'picID' => $data['picID'],
+                'type' => 'user'
+            ]
+        );
+        die(json_encode(['status'=>true]));
+    }
+
     public function registerOrg(Request $request){
 
-        // $tmp = $request->all();
-
-        // die();
         $tmp = json_decode(file_get_contents('php://input'),true);
         $getUser = $this->getProfile($tmp['access_token']);
 
         $id =  $getUser->userId;
-        // print_r($tmp['form']['picID']);
-        // die($id);
-        $form =  $tmp['form'];
+        $data =  $tmp['form'];
 
 
         $db = Users::where('line_id',$id)->update(
             [
-                'firstname' => $form['firstname'],
-                'lastname' =>$form['lastname'],
-                'tel' =>$form['tel'],
-                'sex' => $form['sex'],
-                'address' => $form['address'],
-                'provinces' => $form['provinces'],
-                'amphurs' => $form['amphurs'],
-                'birthday' => $form['date'],
-                'tradeNum' => $form['tradeNum'],
-                'OrgName' => $form['OrgName'],
-                'picID' => $form['picID'],
-                'picORG' => $form['picORG'],
+                'firstname' => $data['firstname'],
+                'lastname' =>$data['lastname'],
+                'tel' =>$data['tel'],
+                'address' => $data['location'],
+                'provinces' => $data['address']['provinces'],
+                'amphurs' => $data['address']['amphurs'],
+                'birthday' => $data['date'],
+                'tradeNum' => $data['tradeNum'],
+                'OrgName' => $data['OrgName'],
+                'picID' => $data['picID'],
+                'picORG' => $data['picORG'],
                 'type' => 'org'
             ]
         );
-        return TRUE;
 
-
+        $payment = new Payments();
+        
+        $bankForm = [];
+        $bankid = 1;
+        $count = count($data['banks']['accountNum']);
+        for ($i=0; $i < $count; $i++) { 
+            $tmp = [
+                'user_id' => $db,
+                'Bank_id' => 1,
+                'accountName' => $data['banks']['accountName'][$i], 
+                'accountNum' => $data['banks']['accountNum'][$i]
+            ];
+            array_push($bankForm,$tmp);
+        }
+        $payment->insert($bankForm);
         die(json_encode(['status'=>true]));
     }
 
 
-    public function showUser(Request $request,$system=false)
-    {
+    public function showUser(Request $request,$system=false){
         $data = json_decode(file_get_contents('php://input'),true);
         $getUser = $this->getProfileID($data['access_token']);
 
@@ -221,42 +186,63 @@ class UsersController extends Controller
             $user->line_pic = $uu['pictureUrl'];
             $user->save();
         }
-        return $users[0];
+        die(json_encode($users[0]));
 
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
+    public function show(){
+        $user = new UsersController();
+        $token = $_GET['token'];
+        $token = str_replace(' ','+',$token);
+        $getUser = $user->getProfile($token);
+        $userId = $getUser->userId;
+        return  Users::where('line_id',$userId)->first();
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
+    public function checkUser(){
+        $user = new UsersController();
+        $token = $_GET['token'];
+        $token = str_replace(' ','+',$token);
+        $getUser = $user->getProfile($token);
+        $userId = $getUser->userId;
+        $type = Users::where('line_id',$userId)->first();
+        if ($type->type == 'admin') {
+            return Users::get();
+        }else {
+            $output = array(
+                'status' => 406,
+                'msg' => 'No Permission',
+            );
+    
+            return $output;
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        $user =  Users::find($id);
-        $user->delete();
+    public function updateStatus(Request $request){
+        $user = new UsersController();
+
+        $data = json_decode(file_get_contents('php://input'),true);
+        // return $data;
+        $getUser = $user->getProfile($data['access_token']);
+        $updateID = $data['id'];
+        $userId = $getUser->userId;
+        $type = Users::where('line_id',$userId)->first();
+        if ($type->type == 'admin'){
+            Users::where('id',$updateID)->update(['status' => 'true']);
+
+            $output = array(
+                'status' => 200,
+                'msg' => 'Update Status User Complete',
+            );
+    
+            return $output;
+        }else {
+            $output = array(
+                'status' => 400,
+                'msg' => 'Update Status User Fail',
+            );
+    
+            return $output;
+        }
     }
 }
