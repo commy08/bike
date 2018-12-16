@@ -31,6 +31,9 @@ Route::post('/admin/updateuser',\API\UsersController::class.'@updateStatus');
 Route::get('/select', \API\EventController::class.'@SelectByProvince');
 Route::resource('/event', \API\EventController::class);
 Route::post('/admin/updateevent',\API\UsersController::class.'@updateStatus');
+Route::get('/test', \API\EventController::class.'@test');
+Route::get('/eventorg', \API\EventController::class.'@showEventOrg');
+Route::get('/eventcount', \API\EventController::class.'@showEventOrg');
 
 //Route address
 Route::get('/address', \API\AddressController::class.'@index');
@@ -39,9 +42,11 @@ Route::get('/getAmp/{id}', \API\AddressController::class.'@getAmp');
 
 //Route division
 Route::resource('/division', \API\DivisionController::class);
+Route::get('/getdivision', \API\DivisionController::class.'@getDivision');
 
 //Route invoice
-Route::resource('/invoice', \API\InvoiceController::class);    
+Route::resource('/invoice', \API\InvoiceController::class);
+Route::get('/history', \API\InvoiceController::class.'@history');
 
 //Route pic
 Route::resource('/pic', \API\PicController::class);

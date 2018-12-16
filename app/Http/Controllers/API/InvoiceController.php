@@ -18,30 +18,14 @@ class InvoiceController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        $user = new UserController();
+    public function index(){
+        $user = new UsersController();
 
         $token = $_GET['token'];
         $token = str_replace(' ','+',$token);
         $getUser = $user->getProfile($token);
         $userId = $getUser->userId;
         $type = Users::where('line_id',$userId)->first();
-        if ($type->type == "racer") {
-            return [
-                'Invoices' => Invoices::where('user_id',$type->id)->get()
-             ];
-        }if ($type->type == 'org') {
-            return [
-                'Invoices' => DB::table('invoices')
-                                ->join('users','invoices.user_id','=','users.id')
-                                ->join('divisions','invoices.user_id','=','divisions.id')
-                                ->join('events','divisions.events_id','=','events.id')
-                                ->select('invoices.id','events.name','divisions.name','divisions.sex','divisions.cost','users.firstname','users.lastname','users.sex')
-                                ->get()
-             ];
-        }
-
     }
 
     /**
@@ -50,8 +34,7 @@ class InvoiceController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         $data = $request->all();
         $invoice = new Invoices();
         $invoice->fill($data);
@@ -71,8 +54,7 @@ class InvoiceController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
-    {
+    public function show($id){
         return Invoices::get($id);
     }
 
@@ -83,22 +65,28 @@ class InvoiceController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
-    {
+    public function update(Request $request, $id){
         $invoice = Invoices::find($id);
         $invoice->fill($request->all());
         $invoice->save();
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        $invoice = Invoices::find($id);
-        $invoice->delete();
+    public function history(){
+        $user = new UsersController();
+
+        $token = $_GET['token'];
+        $token = str_replace(' ','+',$token);
+        $getUser = $user->getProfile($token);
+        $userId = $getUser->userId;
+        $type = Users::where('line_id',$userId)->first();
+        if ($type->type = 'user') {
+            return [
+                'invoices' => DB::table('invoices')
+                ->join('divisions','divisions.id','=','invoices.division_id')
+                ->join('events','events.id','=','divisions.events_id')
+                ->where('user_id',$type->id)
+                ->get()
+            ];
+        }
     }
 }

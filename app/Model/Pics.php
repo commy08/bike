@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pics extends Model
 {
-    protected $table = 'Pics';
+    protected $table = 'pics';
     protected $fillable = [
         "id",
         "event_id",
-        "name",
+        "PicData",
         "created_at",
         "updated_at"
     ];

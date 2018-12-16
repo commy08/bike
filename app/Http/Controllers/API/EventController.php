@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
-
+use DB;
 use App\Model\Users;
 use App\Model\Events;
 use App\Model\Pics;
@@ -20,8 +20,6 @@ class EventController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(){
-
-      //  include app_path().'\\Http\\Controllers\\UserController.php';
         $user = new UsersController();
 
         $token = $_GET['token'];
@@ -35,8 +33,6 @@ class EventController extends Controller
             ];
         }
         if ($type->type == 'org') {
-            // $event['event'] = Events::where('user_id',$type->id)->get();
-            // $output['event'] = $event;
             return [
                 'event' =>  Events::where('user_id',$type->id)->get()
             ];
@@ -48,7 +44,21 @@ class EventController extends Controller
 
     public function SelectByProvince(){
         $province = urldecode($_GET['province']);
-         return Events::where('provinces',$province)->get();
+        $event = DB::table('pics')
+        ->groupBy('event_id')
+        ->join('events' , 'pics.event_id' , '=' , 'events.id')
+        ->where('provinces',$province)->where('status','true')
+        ->get();
+        return $event;
+    }
+
+    public function test(){
+        $pic = DB::table('pics')
+        ->groupBy('event_id')
+        ->join('events' , 'pics.event_id' , '=' , 'events.id')
+        ->where('provinces',$province)->where('status','true')
+        ->get();
+        return $pic;
     }
 
     /**
@@ -65,7 +75,7 @@ class EventController extends Controller
 
         $data = $request->all();
         // $data = json_decode(file_get_contents('php://input'),true);
-        // return  $data;
+        return  $data;
         
         $token = $data['access_token'];
         $getUser = $user->getProfile($token);
@@ -75,16 +85,13 @@ class EventController extends Controller
         $data['form']['user_id'] = $type->id;
         $EventForm = $data['form'];
         $DivisionsForm = $data['division'];
-        
-        // dd($form);
-        // die(json_encode($form));
+          
         if ($type->type == 'org') {
             $event->fill($EventForm);
             $event->save();
             $event_id = $event->id;
 
             //count form before save***
-            // $data['form']['imgs'][0]['file']
             $PicForm = [];
             foreach ($data['form']['imgs'] as $value) {
                 $tmp = [
@@ -144,7 +151,10 @@ class EventController extends Controller
      */
     public function show($id)
     {
-        return Events::find($id);
+        $event = Events::find($id);
+        $pic = Pics::where('event_id',$id)->get();
+        $output = array_merge(['event' => $event],['pic' => $pic]);
+        return $output;
     }
 
     /**
@@ -195,6 +205,25 @@ class EventController extends Controller
             );
     
             return $output;
+        }
+    }
+
+    //แสดง event ของ org แต่ละคน หน้ากิจกรรมของ org
+    public function showEventOrg(){
+        $user = new UsersController();
+
+        $token = $_GET['token'];
+        $token = str_replace(' ','+',$token);
+        $getUser = $user->getProfile($token);
+        $userId = $getUser->userId;
+        $type = Users::where('line_id',$userId)->first();
+        if ($type->type == 'org') {
+            return [
+                'event' => DB::table('events')
+                ->join('divisions','divisions.events_id','=','events.id')
+                ->join('invoices','invoices.division_id','=','divisions.id')
+                ->get()
+            ];
         }
     }
 }

@@ -148,16 +148,18 @@ class UsersController extends Controller
                 'type' => 'org'
             ]
         );
+        $uid = Users::where('line_id',$id)->first();
+        $uid = $uid->id;
 
         $payment = new Payments();
-        
+        // return $data['banks'];
         $bankForm = [];
         $bankid = 1;
         $count = count($data['banks']['accountNum']);
         for ($i=0; $i < $count; $i++) { 
             $tmp = [
-                'user_id' => $db,
-                'Bank_id' => 1,
+                'user_id' => $uid,
+                'BankName' => $data['banks']['bankName'][$i],
                 'accountName' => $data['banks']['accountName'][$i], 
                 'accountNum' => $data['banks']['accountNum'][$i]
             ];
