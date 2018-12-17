@@ -20,7 +20,13 @@ class EventController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(){
-        $user = new UsersController();
+        $event = DB::table('pics')
+        ->groupBy('event_id')
+        ->join('events' , 'pics.event_id' , '=' , 'events.id')
+        ->where('status','true')
+        ->get();
+        return $event;
+        /*$user = new UsersController();
 
         $token = $_GET['token'];
         $token = str_replace(' ','+',$token);
@@ -39,7 +45,7 @@ class EventController extends Controller
         }
         return [
             'event' =>  Events::where('status','true')->get()
-        ];
+        ];*/
     }
 
     public function SelectByProvince(){
@@ -73,9 +79,10 @@ class EventController extends Controller
         $pic = new Pics();
         $divisions = new Divisions();
 
-        $data = $request->all();
-        // $data = json_decode(file_get_contents('php://input'),true);
-        return  $data;
+        // $data = $request->all();
+        $data = json_decode(file_get_contents('php://input'),true);
+        // return  $data;
+        // die();
         
         $token = $data['access_token'];
         $getUser = $user->getProfile($token);
@@ -83,14 +90,29 @@ class EventController extends Controller
         
         $type = Users::where('line_id',$userId)->first();
         $data['form']['user_id'] = $type->id;
-        $EventForm = $data['form'];
-        $DivisionsForm = $data['division'];
+        $DivisionsForm = $data['form']['divisions'];
+
+
+        $eventData = [
+            'EventName' => $data['form']['EventName'],
+            'user_id' => $type->id,
+            'detail' => $data['form']['detail'],
+            'location' => $data['form']['location'],
+            'provinces' => $data['form']['address']['provinces'],
+            'amphurs' => $data['form']['address']['amphurs'],
+            'dateClose' => $data['form']['dateClose'],
+            'dateDeadline' => $data['form']['dateDeadline'],
+            'dateRace' => $data['form']['dateRace'],
+            'type' => $data['form']['type'],
+            'rule' => $data['form']['rule'],
+            'reward' => $data['form']['reward'],
+            'youtube' => $data['form']['youtube'],
+        ];
           
         if ($type->type == 'org') {
-            $event->fill($EventForm);
+            $event->fill($eventData);
             $event->save();
             $event_id = $event->id;
-
             //count form before save***
             $PicForm = [];
             foreach ($data['form']['imgs'] as $value) {
@@ -100,30 +122,25 @@ class EventController extends Controller
                 ];
                 array_push($PicForm,$tmp);
             }
-            // $data['form']['imgs']['event_id'] = $event_id;
-            // $PicForm = $data['img'];
-
             $pic->insert($PicForm);
-            // $pic->save();
 
             //count form before save***
+            // return $data['form']['divisions']['e_id'] = $event_id;
+            // die();
             $divisionForm = [];
-            foreach ($data['form']['division'] as $value) {
+            foreach ($data['form']['divisions'] as $value) {
                 $tmp = [
+                    
                     'DivisionName' => $value['DivisionName'],
+                    'event_id' => $event_id,
                     'ageMin' => $value['ageMin'],
                     'ageMax' => $value['ageMax'],
                     'sex' => $value['sex'],
-                    'cost' => $value['cost'],
-                    'event_id' => $value['event_id']
+                    'cost' => $value['cost']
                 ];
                 array_push($divisionForm,$tmp);
             }
-            /*$data['division']['event_id'] = $event_id;
-            $DivisionsForm = $data['division'];*/
-
-            $divisions->insert($DivisionsForm);
-            // $divisions->save();
+            $divisions->insert($divisionForm);
 
             $output = array(
                 'status' => 200,
@@ -225,5 +242,39 @@ class EventController extends Controller
                 ->get()
             ];
         }
+    }
+
+    public function getEventType(){
+        $type = $_GET['type'];
+        // dd($type);
+        if ($type == 'moutain') {
+            $event = DB::table('pics')
+            ->groupBy('event_id')
+            ->join('events' , 'pics.event_id' , '=' , 'events.id')
+            ->where('status','true')
+            ->where('type','จักรยานภูเขา')
+            ->get();
+            return $event;
+        }
+        elseif ($type == 'road') {
+            $event = DB::table('pics')
+            ->groupBy('event_id')
+            ->join('events' , 'pics.event_id' , '=' , 'events.id')
+            ->where('status','true')
+            ->where('type','จักรยานทางเรียบ')
+            ->get();
+            return $event;
+        }else{
+            $output = array(
+                'status' => 404,
+                'msg' => "undifined" ,
+            );
+            return $output;
+        }
+
+        
+        
+
+        
     }
 }

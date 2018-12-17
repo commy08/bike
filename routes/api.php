@@ -16,6 +16,8 @@ use Illuminate\Http\Request;
 
 Route::resource('/form', 'FormController');
 
+//callback notify
+Route::get('/callbacknotify', \API\UsersController::class.'@temp');
 
 // Route user
 Route::get('/user', \API\UsersController::class.'@show');
@@ -34,6 +36,8 @@ Route::post('/admin/updateevent',\API\UsersController::class.'@updateStatus');
 Route::get('/test', \API\EventController::class.'@test');
 Route::get('/eventorg', \API\EventController::class.'@showEventOrg');
 Route::get('/eventcount', \API\EventController::class.'@showEventOrg');
+Route::get('/eventtype', \API\EventController::class.'@getEventType');
+
 
 //Route address
 Route::get('/address', \API\AddressController::class.'@index');
@@ -42,6 +46,7 @@ Route::get('/getAmp/{id}', \API\AddressController::class.'@getAmp');
 
 //Route division
 Route::resource('/division', \API\DivisionController::class);
+//ส่งไปเรียกดู division เพื่อเลือก class การแข่งขัน
 Route::get('/getdivision', \API\DivisionController::class.'@getDivision');
 
 //Route invoice

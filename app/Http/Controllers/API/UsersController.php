@@ -152,9 +152,7 @@ class UsersController extends Controller
         $uid = $uid->id;
 
         $payment = new Payments();
-        // return $data['banks'];
         $bankForm = [];
-        $bankid = 1;
         $count = count($data['banks']['accountNum']);
         for ($i=0; $i < $count; $i++) { 
             $tmp = [

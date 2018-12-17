@@ -9,8 +9,8 @@ class Divisions extends Model
     protected $table = 'Divisions';
     protected $fillable = [
         "id",
-        "events_id",
-        "name",
+        "event_id",
+        "DivisionName",
         "ageMin",
         "ageMax",
         "sex",

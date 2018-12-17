@@ -9,11 +9,11 @@ class Events extends Model
     protected $table = 'Events';
     protected $fillable = [
         "id",
-        "name",
+        "EventName",
         "detail",
         "location",
-        "amphur_id",
-        "province_id",
+        "amphurs",
+        "provinces",
         "dateClose",
         "dateDeadline",
         "dateRace",
