@@ -22,7 +22,7 @@ class EventController extends Controller
      */
     public function index(){
         $event = DB::table('pics')
-        ->groupBy('event_id')
+        ->groupBy('pics.event_id')
         ->join('events','pics.event_id','=','events.event_id')
         ->where('status','true')
         ->get();
@@ -52,7 +52,7 @@ class EventController extends Controller
     public function SelectByProvince(){
         $province = urldecode($_GET['province']);
         $event = DB::table('pics')
-        ->groupBy('event_id')
+        ->groupBy('pics.event_id')
         ->join('events','pics.event_id','=','events.event_id')
         ->where('provinces',$province)->where('status','true')
         ->get();
@@ -105,7 +105,7 @@ class EventController extends Controller
             'reward' => $data['form']['reward'],
             'youtube' => $data['form']['youtube'],
         ];
-          
+
         if ($type->type == 'org') {
             if ($type->status == 'true') {
                 $event->fill($eventData);
@@ -162,60 +162,75 @@ class EventController extends Controller
      */
     public function show($id){
         $event = Events::where('event_id',$id)->first();
-        $pic = Pics::where('event_id',$id)->get();
-        $payment = Payments::where('user_id',$event->user_id)->get();
-        $output = array_merge(['event' => $event],['pic' => $pic],['payment' => $payment]);
-        return $output;
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id){
-        $user = new UserController();
-        $event = new Events();
-
-        $data = $request->all();
-        $token = $data['token'];
-        $getUser = $user->getProfile($token);
-        $userId = $getUser->userId;
-        $type = Users::where('line_id',$userId)->first();
-
-
-        // $event = Events::find($id);
-        // $event->fill($request->all());
-        // $event->save();
-    }
-
-    public function updateStatus(Request $request){
-        $user = new UsersController();
-
-        $data = json_decode(file_get_contents('php://input'),true);
-        $getUser = $user->getProfile($data['access_token']);
-        $updateID = $data['id'];
-        $userId = $getUser->userId;
-        $type = Users::where('line_id',$userId)->first();
-        if ($type->type == 'admin'){
-            Events::where('event_id',$updateID)->update(['status' => 'true']);
-
-            $output = array(
-                'status' => 200,
-                'msg' => 'Update Status User Complete',
-            );
-    
+        $status = $event->status;
+        // return $status;
+        if ($status == 'true') {
+            $event = Events::where('event_id',$id)->first();
+            $pic = Pics::where('event_id',$id)->get();
+            $payment = Payments::where('user_id',$event->user_id)->get();
+            $output = array_merge(['event' => $event],['pic' => $pic],['payment' => $payment]);
             return $output;
         }else {
             $output = array(
                 'status' => 400,
-                'msg' => 'Update Status User Fail',
+                'msg' => 'Error No Permission',
+            );
+            
+            return $output;
+        }
+
+        
+    }
+
+    public function updateStatusEvent(Request $request){
+        $user = new UsersController();
+
+        $data = json_decode(file_get_contents('php://input'),true);
+        $getUser = $user->getProfile($data['access_token']);
+        $updateID = $data['event_id'];
+        $userId = $getUser->userId;
+        $type = Users::where('line_id',$userId)->first();
+        if ($type->type == 'admin'){
+            $user_id = Events::where('event_id',$updateID)->first();
+            $event = Events::where('event_id',$updateID)->first();
+            $user_id = $user_id->user_id;
+            $user_id = Users::where('user_id',$user_id)->first();
+            $name = $event->EventName;
+            $token = $user_id->line_token;
+            Events::where('event_id',$updateID)->update(['status' => 'true']);
+            $this->sendMsgUpdateUser($token,$name);
+            $output = array(
+                'status' => 200,
+                'msg' => 'Update Status User Complete',
+            );
+            return $output;
+        }else {
+            $output = array(
+                'status' => 400,
+                'msg' => 'Error No Permission',
             );
     
             return $output;
         }
+    }
+
+    public function sendMsgUpdateUser($token,$event){
+        $msg = "กิจกรรม ".$event." ของท่านของท่านได้รับการอนุมัติแล้ว";
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => "https://notify-api.line.me/api/notify",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "message=".urlencode($msg),
+            CURLOPT_HTTPHEADER => array(
+                "authorization: Bearer ".$token,
+                "content-type: application/x-www-form-urlencoded",
+            ),
+        ));
+        $response = curl_exec($curl);
+        curl_close($curl);
     }
 
     //แสดง event ของ org แต่ละคน หน้ากิจกรรมของ org
@@ -249,7 +264,8 @@ class EventController extends Controller
 
     public function getEventType(){
         $type = urldecode($_GET['type']);
-        // dd($type);
+        // return $type;
+        // die();
         if ($type == 'mountain') {
             $event = DB::table('pics')
             ->groupBy('pics.event_id')
@@ -283,7 +299,8 @@ class EventController extends Controller
 
     public function showEventAdmin(){
         $user = new UsersController();
-        $type = urldecode($_GET['token']);
+        $token = urldecode($_GET['token']);
+        // dd($token);
         $token = str_replace(' ','+',$token);
         $getUser = $user->getProfile($token);
         $userId = $getUser->userId;
@@ -295,7 +312,42 @@ class EventController extends Controller
             ->where('status','false')
             ->get();
 
-            return $event;
+            $eventCount = DB::table('events')
+            ->where('status','false')
+            ->count();
+
+            $output = array_merge(['NumberOfEvent' => $eventCount],['Event' => $event]);
+            return $output;
+        }else {
+            $output = array(
+                'status' => 400,
+                'msg' => 'Error No Permission',
+            );
+
+            return $output;
+        }
+    }
+
+    public function showEvent(){
+        $user = new UsersController();
+        $token = urldecode($_GET['token']);
+        $token = str_replace(' ','+',$token);
+        $getUser = $user->getProfile($token);
+        $userId = $getUser->userId;
+        $type = Users::where('line_id',$userId)->first();
+        if ($type->type == 'admin') {
+            $event = DB::table('pics')
+            ->groupBy('pics.event_id')
+            ->join('events','pics.event_id','=','events.event_id')
+            ->where('status','true')
+            ->get();
+
+            $eventCount = DB::table('events')
+            ->where('status','true')
+            ->count();
+
+            $output = array_merge(['NumberOfEvent' => $eventCount],['Event' => $event]);
+            return $output;
         }else {
             $output = array(
                 'status' => 400,

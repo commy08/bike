@@ -19,6 +19,7 @@ class UsersController extends Controller
     public function index(){
         $url = array(
             'url' => 'https://access.line.me/dialog/oauth/weblogin?response_type=code&client_id=1602409871&redirect_uri=http://192.168.1.105:8080/callback&state=peerapat123456789',
+            'urlnoti' => 'https://notify-bot.line.me/oauth/authorize?response_type=code&client_id=eLN5HgKKW9Ms14eZtKKpby&scope=notify&state=peerapat123456789&response_mode=form_post&redirect_uri='.urlencode('http://192.168.1.103:8080/api/callbacknotify?line_id=')
         );
 
         return $url;
@@ -73,7 +74,7 @@ class UsersController extends Controller
         $response = json_decode($this->curl('https://api.line.me/v2/profile',array(),'GET',array('Authorization: Bearer '.$access_token)));
         return isset($response->userId) ? $response: FALSE;
     }
-
+    
     public function curl($url=null,$parameter=array(),$method='GET',$header=array()){
         $options = array(
             CURLOPT_URL => $url,
@@ -120,7 +121,13 @@ class UsersController extends Controller
                 'type' => 'user'
             ]
         );
-        die(json_encode(['status'=>true]));
+        //redir login noti
+        $ip = 'http://192.168.1.103:8080/';
+        $output = array(
+            'url' => $ip.'api/callbacknotify?line_id='.$id
+        );
+        die(json_encode(['status'=>true,'urlnotify'=>$output]));
+        
     }
 
     public function registerOrg(Request $request){
@@ -151,19 +158,19 @@ class UsersController extends Controller
         $uid = Users::where('line_id',$id)->first();
         $uid = $uid->user_id;
 
-        $payment = new Payments();
-        $bankForm = [];
-        $count = count($data['banks']['accountNum']);
-        for ($i=0; $i < $count; $i++) { 
-            $tmp = [
-                'user_id' => $uid,
-                'BankName' => $data['banks']['bankName'][$i],
-                'accountName' => $data['banks']['accountName'][$i], 
-                'accountNum' => $data['banks']['accountNum'][$i]
-            ];
-            array_push($bankForm,$tmp);
-        }
-        $payment->insert($bankForm);
+        // $payment = new Payments();
+        // $bankForm = [];
+        // $count = count($data['banks']['accountNum']);
+        // for ($i=0; $i < $count; $i++) { 
+        //     $tmp = [
+        //         'user_id' => $uid,
+        //         'BankName' => $data['banks']['bankName'][$i],
+        //         'accountName' => $data['banks']['accountName'][$i], 
+        //         'accountNum' => $data['banks']['accountNum'][$i]
+        //     ];
+        //     array_push($bankForm,$tmp);
+        // }
+        // $payment->insert($bankForm);
         die(json_encode(['status'=>true]));
     }
 
@@ -217,18 +224,22 @@ class UsersController extends Controller
         }
     }
 
-    public function updateStatus(Request $request){
+    public function updateStatusUser(Request $request){
         $user = new UsersController();
 
         $data = json_decode(file_get_contents('php://input'),true);
         // return $data;
+        // die();
         $getUser = $user->getProfile($data['access_token']);
-        $updateID = $data['id'];
+        $updateID = $data['user_id'];
         $userId = $getUser->userId;
         $type = Users::where('line_id',$userId)->first();
         if ($type->type == 'admin'){
-            Users::where('user_id',$updateID)->update(['status' => 'true']);
-
+            $idline = Users::where('user_id',$updateID)->first();
+            $token = $idline->line_token;
+            $user = Users::where('user_id',$updateID)->update(['status' => 'true']);
+            $name = urldecode($idline->firstname." ".$idline->lastname);
+            $this->sendMsgUpdateUser($token,$name);
             $output = array(
                 'status' => 200,
                 'msg' => 'Update Status User Complete',
@@ -245,15 +256,45 @@ class UsersController extends Controller
         }
     }
 
+    public function sendMsgUpdateUser($token,$name){
+        $msg = "บัญชีผู้ใช้ของ ".$name." ได้รับการอนุมัติแล้ว";
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => "https://notify-api.line.me/api/notify",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "message=".urlencode($msg),
+            CURLOPT_HTTPHEADER => array(
+                "authorization: Bearer ".$token,
+                "content-type: application/x-www-form-urlencoded",
+            ),
+        ));
+        $response = curl_exec($curl);
+        curl_close($curl);
+    }
+
     public function showUserOrg(){
         $user = new UsersController();
-        $type = urldecode($_GET['token']);
+        $token = urldecode($_GET['token']);
         $token = str_replace(' ','+',$token);
         $getUser = $user->getProfile($token);
         $userId = $getUser->userId;
         $type = Users::where('line_id',$userId)->first();
         if ($type->type == 'admin') {
-            return ['org' => Users::where('status','false')->where('type','org')->get()];
+
+            $userCount = DB::table('users')
+            ->where('status','false')
+            ->where('type','org')
+            ->count();
+
+            $user = Users::where('status','false')
+            ->where('type','org')
+            ->get();
+
+            $output = array_merge(['NumberOfUser' => $userCount],['User' => $user]);
+            return $output;
         }else {
             $output = array(
                 'status' => 406,
@@ -266,13 +307,23 @@ class UsersController extends Controller
 
     public function showUserRacer(){
         $user = new UsersController();
-        $type = urldecode($_GET['token']);
+        $token = urldecode($_GET['token']);
         $token = str_replace(' ','+',$token);
         $getUser = $user->getProfile($token);
         $userId = $getUser->userId;
         $type = Users::where('line_id',$userId)->first();
         if ($type->type == 'admin') {
-            return ['org' => Users::where('status','false')->where('type','user')->get()];
+            $userCount = DB::table('users')
+            ->where('status','false')
+            ->where('type','user')
+            ->count();
+
+            $user = Users::where('status','false')
+            ->where('type','user')
+            ->get();
+
+            $output = array_merge(['NumberOfUser' => $userCount],['User' => $user]);
+            return $output;
         }else {
             $output = array(
                 'status' => 406,

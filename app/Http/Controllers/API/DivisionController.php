@@ -5,70 +5,12 @@ namespace App\Http\Controllers\API;
 use DB;
 use App\Model\Divisions;
 use App\Model\Users;
+use App\Model\Invoices;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
 class DivisionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        return Divisions::get();
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        $division = new Divisions();
-        $division->fill($request->all());
-        $division->save();
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        return Divisions::find($id);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        $division = Divisions::find($id);
-        $division->fill($request->all());
-        $division->save();
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id){
-        $division = Divisions::find($id);
-        $division->delete();
-    }
-
     public function getDivision(){
         $user = new UsersController();
 
@@ -80,16 +22,58 @@ class DivisionController extends Controller
         $getUser = $user->getProfile($token);
         $userId = $getUser->userId;
         $type = Users::where('line_id',$userId)->first();
-        $year = DB::table('users')->where('id',$type->user_id)->selectRaw('substr(birthday,1,4) as dates')->pluck('dates')->unique()->first();
+        $year = DB::table('users')->where('user_id',$type->user_id)->selectRaw('substr(birthday,1,4) as dates')->pluck('dates')->unique()->first();
         $year = (int)$year;
+        $age = $currentyear-$year;
         if ($type->type = 'user') {
-            $age = $currentyear-$year;
             return [
                 'divisions' => Divisions::where('ageMax','>=',$age)
                 ->where('ageMin','<=',$age)
-                ->where('events_id',$idEvent)
-                ->get()
+                ->where('sex',$type->sex)
+                ->where('event_id',$idEvent)
+                ->get(),
+                'CountDivision' => Divisions::where('ageMax','>=',$age)
+                ->where('ageMin','<=',$age)
+                ->where('sex',$type->sex)
+                ->where('event_id',$idEvent)
+                ->count()
             ];
+        }
+    }
+
+    public function CreateInvoice(Request $request){
+        $invoice = new Invoices();
+        $user = new UsersController();
+        /*$token = $_GET['token'];
+        $idDiv = $_GET['division_id'];
+        $token = str_replace(' ','+',$token);
+        $getUser = $user->getProfile($token);
+        $userId = $getUser->userId;
+        $type = Users::where('line_id',$userId)->first();*/
+        $data = json_decode(file_get_contents('php://input'),true);
+        $idDiv = $data['division_id'];
+        $token = $data['access_token'];
+        $getUser = $user->getProfile($token);
+        $userId = $getUser->userId;
+        $type = Users::where('line_id',$userId)->first();
+        $invData = [
+            'user_id' => $type->user_id,
+            'division_id' => $idDiv
+        ];
+        if ($type->type == 'user') {
+            $invoice->fill($invData)->save();
+
+            $output = array(
+                'status' => 200,
+                'msg' => 'Create Invoice Complete',
+            );
+            return $output;
+        }else{
+            $output = array(
+                'status' => 401,
+                'msg' => "No Permission" ,
+            );
+                return $output;
         }
     }
 }
