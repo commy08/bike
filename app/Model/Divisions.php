@@ -8,7 +8,7 @@ class Divisions extends Model
 {
     protected $table = 'Divisions';
     protected $fillable = [
-        "id",
+        "division_id",
         "event_id",
         "DivisionName",
         "ageMin",

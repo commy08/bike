@@ -64,8 +64,7 @@ class DivisionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
+    public function destroy($id){
         $division = Divisions::find($id);
         $division->delete();
     }
@@ -81,7 +80,7 @@ class DivisionController extends Controller
         $getUser = $user->getProfile($token);
         $userId = $getUser->userId;
         $type = Users::where('line_id',$userId)->first();
-        $year = DB::table('users')->where('id',$type->id)->selectRaw('substr(birthday,1,4) as dates')->pluck('dates')->unique()->first();
+        $year = DB::table('users')->where('id',$type->user_id)->selectRaw('substr(birthday,1,4) as dates')->pluck('dates')->unique()->first();
         $year = (int)$year;
         if ($type->type = 'user') {
             $age = $currentyear-$year;

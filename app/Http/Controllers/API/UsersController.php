@@ -149,7 +149,7 @@ class UsersController extends Controller
             ]
         );
         $uid = Users::where('line_id',$id)->first();
-        $uid = $uid->id;
+        $uid = $uid->user_id;
 
         $payment = new Payments();
         $bankForm = [];
@@ -166,7 +166,6 @@ class UsersController extends Controller
         $payment->insert($bankForm);
         die(json_encode(['status'=>true]));
     }
-
 
     public function showUser(Request $request,$system=false){
         $data = json_decode(file_get_contents('php://input'),true);
@@ -228,7 +227,7 @@ class UsersController extends Controller
         $userId = $getUser->userId;
         $type = Users::where('line_id',$userId)->first();
         if ($type->type == 'admin'){
-            Users::where('id',$updateID)->update(['status' => 'true']);
+            Users::where('user_id',$updateID)->update(['status' => 'true']);
 
             $output = array(
                 'status' => 200,
@@ -240,6 +239,44 @@ class UsersController extends Controller
             $output = array(
                 'status' => 400,
                 'msg' => 'Update Status User Fail',
+            );
+    
+            return $output;
+        }
+    }
+
+    public function showUserOrg(){
+        $user = new UsersController();
+        $type = urldecode($_GET['token']);
+        $token = str_replace(' ','+',$token);
+        $getUser = $user->getProfile($token);
+        $userId = $getUser->userId;
+        $type = Users::where('line_id',$userId)->first();
+        if ($type->type == 'admin') {
+            return ['org' => Users::where('status','false')->where('type','org')->get()];
+        }else {
+            $output = array(
+                'status' => 406,
+                'msg' => 'No Permission',
+            );
+    
+            return $output;
+        }
+    }
+
+    public function showUserRacer(){
+        $user = new UsersController();
+        $type = urldecode($_GET['token']);
+        $token = str_replace(' ','+',$token);
+        $getUser = $user->getProfile($token);
+        $userId = $getUser->userId;
+        $type = Users::where('line_id',$userId)->first();
+        if ($type->type == 'admin') {
+            return ['org' => Users::where('status','false')->where('type','user')->get()];
+        }else {
+            $output = array(
+                'status' => 406,
+                'msg' => 'No Permission',
             );
     
             return $output;

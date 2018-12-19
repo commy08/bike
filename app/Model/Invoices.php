@@ -8,7 +8,7 @@ class Invoices extends Model
 {
     protected $table = 'Invoices';
     protected $fillable = [
-        "id",
+        "invioce_id",
         "user_id",
         "division_id",
         "status",

@@ -8,7 +8,7 @@ class Pics extends Model
 {
     protected $table = 'pics';
     protected $fillable = [
-        "id",
+        "pic_id",
         "event_id",
         "PicData",
         "created_at",

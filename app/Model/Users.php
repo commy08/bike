@@ -8,7 +8,7 @@ class Users extends Model
 {
     protected $table = 'Users';
     protected $fillable = [
-        "id",
+        "user_id",
         "line_id",
         "line_pic",
         "line_token",

@@ -31,10 +31,11 @@ class AddressController extends Controller
        
     }
 
-    public function getAmp($id)
+    public function getAmp()
     { 
-        
-        $amp = Amphurs::where('province_id',$id)->get();
+        $province = urldecode($_GET['provinces']);
+        $id = Provinces::where('province_name',$province)->first();
+        $amp = Amphurs::where('province_id',$id->id)->get();
         return $amp; 
         
     }
