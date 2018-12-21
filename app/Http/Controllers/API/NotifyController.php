@@ -25,7 +25,7 @@ class NotifyController extends Controller
             'scope' => 'notify',
             'state' => 'peerapat123456789',
             'response_mode' => 'form_post',
-            'redirect_uri' => 'http://192.168.1.103:8080/api/callbacknotify?line_id=U03b830f026405a8987b7e62933b1493c',
+            'redirect_uri' => 'http://192.168.1.39:8080/api/callbacknotify?line_id=U03b830f026405a8987b7e62933b1493c',
         );
         $output = array(
             'status' => 200,
@@ -40,7 +40,7 @@ class NotifyController extends Controller
             $parameter = array(
                 'grant_type' => 'authorization_code',
                 'code' => trim($_POST['code']),
-                'redirect_uri' => 'http://192.168.1.103:8080/api/callbacknotify?line_id='.$_GET['line_id'],
+                'redirect_uri' => 'http://192.168.1.39:8080/api/callbacknotify?line_id='.$_GET['line_id'],
                 'client_id' => 'eLN5HgKKW9Ms14eZtKKpby',
                 'client_secret' => '43jqioufgsilyd8qDJTcWpSqDHyAl0E3m9adjPHkeKf'
             );
@@ -49,15 +49,15 @@ class NotifyController extends Controller
             if($response->status === 200){
                 Users::where('line_id',$_GET['line_id'])->update(['line_token' => $response->access_token]);
                 //ip หน้าบ้าน
-                die('<script>location="http://192.168.1.105:8080/";</script>');
+                die('<script>location="http://192.168.1.37:8080/";</script>');
             }else{
                 //ip หน้าบ้าน
-                die('<script>location="http://192.168.1.105:8080/";</script>');
+                die('<script>location="http://192.168.1.37:8080/";</script>');
             }				
 			
         }else{
             //ip หน้าบ้าน
-            die('<script>location="http://192.168.1.105:8080/";</script>');
+            die('<script>location="http://192.168.1.37:8080/";</script>');
 		}
     }
 

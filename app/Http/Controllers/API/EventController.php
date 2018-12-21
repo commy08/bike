@@ -201,7 +201,7 @@ class EventController extends Controller
             $this->sendMsgUpdateUser($token,$name);
             $output = array(
                 'status' => 200,
-                'msg' => 'Update Status User Complete',
+                'msg' => 'Update Status Event Complete',
             );
             return $output;
         }else {

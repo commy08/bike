@@ -73,3 +73,6 @@ Route::resource('/bank', \API\BankController::class);
 // Route bank
 Route::resource('/otp', \API\OtpController::class);
 
+// Route excel
+Route::get('/export', \API\ExportController::class.'@ExportToExcel')->name('export_excel.excel');
+

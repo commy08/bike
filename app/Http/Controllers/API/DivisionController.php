@@ -26,18 +26,25 @@ class DivisionController extends Controller
         $year = (int)$year;
         $age = $currentyear-$year;
         if ($type->type = 'user') {
-            return [
-                'divisions' => Divisions::where('ageMax','>=',$age)
+            return array_merge(
+                ['divisions' => Divisions::where('ageMax','>=',$age)
                 ->where('ageMin','<=',$age)
                 ->where('sex',$type->sex)
                 ->where('event_id',$idEvent)
-                ->get(),
-                'CountDivision' => Divisions::where('ageMax','>=',$age)
+                ->get()],
+                ['CountDivision' => Divisions::where('ageMax','>=',$age)
                 ->where('ageMin','<=',$age)
                 ->where('sex',$type->sex)
                 ->where('event_id',$idEvent)
-                ->count()
-            ];
+                ->count()]
+            );
+        }else {
+            $output = array(
+                'status' => 406,
+                'msg' => 'No Permission',
+            );
+    
+            return $output;
         }
     }
 
