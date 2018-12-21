@@ -16,7 +16,7 @@ class EventsExport implements FromCollection
     {   
         $tmp = $this->id;
 
-        return Events::select('invoices.invoice_id','users.firstname','users.lastname','users.birthday','users.tel','divisions.DivisionName','divisions.ageMin','divisions.ageMax','divisions.cost')
+        return Events::select('invoices.invoice_id','users.firstname','users.lastname','users.sex','users.birthday','users.tel','divisions.DivisionName','divisions.ageMin','divisions.ageMax','divisions.cost')
         ->join('divisions','divisions.event_id','=','events.event_id')
         ->join('invoices','invoices.division_id','=','divisions.division_id')
         ->join('users','users.user_id','=','invoices.user_id')
