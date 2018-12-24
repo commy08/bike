@@ -18,7 +18,7 @@ class UsersController extends Controller
      */
     public function index(){
         $url = array(
-            'url' => 'https://access.line.me/dialog/oauth/weblogin?response_type=code&client_id=1602409871&redirect_uri=http://192.168.1.37:8080/callback&state=peerapat123456789',
+            'url' => 'https://access.line.me/dialog/oauth/weblogin?response_type=code&client_id=1602409871&redirect_uri=http://10.94.33.206:8080/callback&state=peerapat123456789',
             'urlnoti' => 'https://notify-bot.line.me/oauth/authorize?response_type=code&client_id=eLN5HgKKW9Ms14eZtKKpby&scope=notify&state=peerapat123456789&response_mode=form_post&redirect_uri='.urlencode('http://192.168.1.39:8080/api/callbacknotify?line_id=')
         );
 
@@ -29,7 +29,7 @@ class UsersController extends Controller
         $parameter = array(
             'grant_type' => 'authorization_code',
             'code' => trim($_GET['code']),
-            'redirect_uri' => 'http://192.168.1.37:8080/callback', //ip frontend
+            'redirect_uri' => 'http://10.94.33.206:8080/callback', //ip frontend
             'client_id' => '1602409871',
             'client_secret' => '37a7d9312db424eda44f68689373dd9e'
         );
